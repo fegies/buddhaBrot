@@ -3,6 +3,8 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
+#include <math.h>
 
 #include "qdbmp.h"
 #include "xorshift.h"
@@ -127,6 +129,28 @@ void* buddhabrot_pthread( void* vp_arg )
 	return 0;
 }
 
+unsigned char interpolateBrightness(unsigned int value, unsigned int max)
+{
+	//linear interpolation
+//	return (unsigned char) (255 * ((double)value / max));
+
+	//square interpolation
+	double d = sqrt(value) / sqrt(max);
+
+	//third root interpolation
+//	double d = pow(value, 1.0/3) / pow(max,1.0/3);
+
+	// square root of 4 interpolation
+//	double d = sqrt(sqrt(value)) / sqrt(sqrt(max));
+
+	// exponential interpolation log2
+//	double d = log2(value) / log2(max);
+
+	// exponential interpolation ln
+//	double d = log(value) / log(max);
+
+	return (unsigned char) (255 * d);
+}
 
 BMP* greyscaleImage( unsigned int pointCount, unsigned int xsize, unsigned int ysize, unsigned int iterations, unsigned int workercount )
 {
@@ -170,7 +194,7 @@ BMP* greyscaleImage( unsigned int pointCount, unsigned int xsize, unsigned int y
 	BMP* image = BMP_Create(xsize,ysize, 24);
 	for(unsigned int x = 0; x < xsize; ++x ) {
 		for(unsigned int y = 0; y < ysize; ++y ) {
-			unsigned char val = 255 * ((double)canonicData[x][y] / max);
+			unsigned char val = interpolateBrightness(canonicData[x][y], max);
 			BMP_SetPixelRGB(image, x,y, val, val, val);
 		}
 		free(canonicData[x]);
@@ -183,10 +207,14 @@ BMP* greyscaleImage( unsigned int pointCount, unsigned int xsize, unsigned int y
 BMP* colorImage( unsigned int pointCount, unsigned int xsize, unsigned int ysize, unsigned int iterationsR,
                  unsigned int iterationsG, unsigned iterationsB, unsigned int workercount )
 {
+	printf("rendering red\n");
 	BMP* resultR = greyscaleImage(pointCount, xsize, ysize,iterationsR, workercount);
+	printf("rendering green\n");
 	BMP* resultG = greyscaleImage(pointCount, xsize, ysize,iterationsG, workercount);
+	printf("rendering blue\n");
 	BMP* resultB = greyscaleImage(pointCount, xsize, ysize,iterationsB, workercount);
 
+	printf("combining\n");
 	for(unsigned int x = 0; x < xsize; ++x )
 		for(unsigned int y = 0; y < ysize; ++y ) {
 			unsigned char r,g,b,t;
@@ -206,7 +234,7 @@ int main(int argc,char *const *argv)
 	unsigned int xsize = 2000;
 	unsigned int ysize = 2000;
 	unsigned int iterations = 2000;
-	unsigned int points = 20000000;
+	unsigned int points = 0xfffffff;
 	unsigned int workercount = 2;
 	char* outputfile = 0;
 	char nebulaBrot = 0;
@@ -266,7 +294,11 @@ int main(int argc,char *const *argv)
 	else
 		image = greyscaleImage(points, xsize, ysize, iterations, workercount);
 
-	BMP_WriteFile(image, outputfile);
+	if( strcmp(outputfile,"-") == 0 )
+		BMP_WriteStdout(image);
+	else
+		BMP_WriteFile(image, outputfile);
+
 	BMP_Free(image);
 
 	return 0;

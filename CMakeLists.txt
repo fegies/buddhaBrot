@@ -10,4 +10,4 @@ add_executable(buddhaBrot
         src/main.c
         src/qdbmp.c src/xorshift.c include/xorshift.h)
 
-target_link_libraries (buddhaBrot pthread)
+target_link_libraries (buddhaBrot pthread m)

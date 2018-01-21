@@ -7,7 +7,7 @@ OBJDIR     = objs
 SHAREFLAGS = -pipe -Wall -pedantic -O2
 CPPCFLAGS  = $(SHAREFLAGS)
 CCFLAGS    = $(SHAREFLAGS) -std=gnu11
-LINKFLAGS  = $(SHAREFLAGS) -lpthread
+LINKFLAGS  = $(SHAREFLAGS) -lpthread -lm
 CPPCOMPILER= $(CXX)
 CCOMPILER  = $(CC)
 
@@ -20,7 +20,7 @@ OBJS       = $(BASEOBS)
 BASEOBS    = main.o qdbmp.o xorshift.o
 
 OPROG = $(addprefix $(ODIR)/, $(PROG))
-RUNFLAGS = -o buddha.bmp -p 8
+RUNFLAGS = -o buddha.bmp -p 8 -n -r 5000 -g 500 -b 50 -c 200000000
 
 DEPDIR := deps
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
@@ -29,7 +29,7 @@ COMPILE.cpp = $(CPPCOMPILER) $(DEPFLAGS) $(CPPCFLAGS) -c
 POSTCOMPILE= mv -f $(DEPDIR)/$*.TD $(DEPDIR)/$*.d
 
 run : all
-	time $(OPROG) $(RUNFLAGS)
+	$(OPROG) $(RUNFLAGS) && feh -. buddha.bmp
 
 all : buildbin $(OPROG)
 
@@ -44,7 +44,7 @@ clean:
 
 #linking
 $(OPROG): $(addprefix $(ODIR)/$(OBJDIR)/, $(OBJS))
-	$(CPPCOMPILER) $(LINKFLAGS) -o $@ $^
+	$(CCOMPILER) $(LINKFLAGS) -o $@ $^
 
 #compiling
 $(ODIR)/$(OBJDIR)/%.o : %.cpp $(DEPDIR)/%.d
