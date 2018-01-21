@@ -1,9 +1,11 @@
 #define _POSIX_C_SOURCE 2
 
-#include "qdbmp.h"
 #include <pthread.h>
 #include <unistd.h>
 #include <stdlib.h>
+
+#include "qdbmp.h"
+#include "xorshift.h"
 
 void print_usage()
 {
@@ -19,11 +21,11 @@ void print_usage()
  * @param r
  * @param i
  */
-void randomPoint( double *r, double* i )
+void randomPoint( double *r, double* i, uint64_t rand_state[2] )
 {
 	for( ;; ) {
-		double x = ((double)rand() / RAND_MAX) * 4 - 2;
-		double y = ((double)rand() / RAND_MAX) * 4 - 2;
+		double x = ((double)xorshift128plus(rand_state) / XORSHIFT_MAX) * 4 - 2;
+		double y = ((double)xorshift128plus(rand_state) / XORSHIFT_MAX) * 4 - 2;
 
 		//check that the point is not within the primary or secondary bulb of the set
 		if( (x+1)*(x+1) + y*y < 1.0/16)
@@ -81,10 +83,11 @@ void nextPoint( double *r, double *i, double cr, double ci)
  */
 void buddhabrot(unsigned int ** pointData,unsigned int pointCount, unsigned int xsize, unsigned int ysize, unsigned int iterations)
 {
+	uint64_t rand_state[2] = {rand(),rand()};
 	for( unsigned int i = 0; i < pointCount; ++i ) {
 		double r = 0,i = 0;
 		double cr,ci;
-		randomPoint(&cr,&ci);
+		randomPoint(&cr,&ci,rand_state);
 
 		for(unsigned int iter = 0; iter < iterations; ++iter ) {
 			nextPoint(&r, &i, cr, ci);
@@ -200,8 +203,6 @@ BMP* colorImage( unsigned int pointCount, unsigned int xsize, unsigned int ysize
 
 int main(int argc,char *const *argv)
 {
-
-
 	unsigned int xsize = 2000;
 	unsigned int ysize = 2000;
 	unsigned int iterations = 2000;

@@ -17,7 +17,7 @@ SUBPATHS   = .
 #The Objects that are compiled
 OBJS       = $(BASEOBS)
 
-BASEOBS    = main.o qdbmp.o
+BASEOBS    = main.o qdbmp.o xorshift.o
 
 OPROG = $(addprefix $(ODIR)/, $(PROG))
 RUNFLAGS = -o buddha.bmp -p 8
@@ -29,7 +29,7 @@ COMPILE.cpp = $(CPPCOMPILER) $(DEPFLAGS) $(CPPCFLAGS) -c
 POSTCOMPILE= mv -f $(DEPDIR)/$*.TD $(DEPDIR)/$*.d
 
 run : all
-	$(OPROG) $(RUNFLAGS)
+	time $(OPROG) $(RUNFLAGS)
 
 all : buildbin $(OPROG)
 
